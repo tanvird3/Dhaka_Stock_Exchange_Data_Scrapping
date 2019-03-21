@@ -1,14 +1,11 @@
-#Importing packages
-from selenium import webdriver
-import pandas as pd
-from selenium.webdriver.support.select import Select
-import datetime
-from bs4 import BeautifulSoup
-import pandas as pd
-import lxml
-from IPython.display import display_html
-
 def extractdse(fdate, tday, instrument):
+    
+    #Importing packages
+    import pandas as pd, datetime, lxml
+    from selenium import webdriver
+    from selenium.webdriver.support.select import Select
+    from bs4 import BeautifulSoup
+    from IPython.display import display_html
     
     # load the driver, download chrome driver and put the .exe file in C:/Windows
     driver = webdriver.Chrome()
@@ -24,15 +21,17 @@ def extractdse(fdate, tday, instrument):
         print ("No alert here")
     
     # from date
+    fd=fdate
     fdate=datetime.datetime.strptime(fdate, '%Y-%m-%d')
     yr=str(fdate.year)
-    mn='0'+str(fdate.month)
-    dy='0'+str(fdate.day)
+    mn='0'+str(fdate.month)[-2:]
+    dy='0'+str(fdate.day)[-2:]
     
     # to date
+    td=tday
     tday=datetime.datetime.strptime(tday, '%Y-%m-%d')
-    bdd='0'+str(tday.day)
-    bdm='0'+str(tday.month)
+    bdd='0'+str(tday.day)[-2:]
+    bdm='0'+str(tday.month)[-2:]
     bdy=str(tday.year)
     
     # beginning day
@@ -69,8 +68,13 @@ def extractdse(fdate, tday, instrument):
     # extract the table
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     tables = soup.find_all('table')
-    tt=tables[374]
-    k=pd.read_html(driver.page_source, header=0)[373]
+    k=pd.read_html(driver.page_source, header=0)[len(tables)-5]
+    k=k.drop(['#'], axis=1)
+    
+    # write the file to xlsx
+    fn=instrument+'-'+fd+'-'+'to'+'-'+td+'.xlsx'
+    k.to_excel(fn, index=False)
+    
     return(k)
     
 extractdse('2019-01-01', '2019-03-03', 'ACI')
